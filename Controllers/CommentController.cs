@@ -69,7 +69,7 @@ namespace api.Controllers
         }
 
         [HttpPost("{stockId}")]
-        public async Task<IActionResult> CreateComment([FromRoute] int stockId, [FromBody] CreateCommentDto createCommentDto)
+        public async Task<IActionResult> CreateComment([FromRoute] int stockId, [FromBody] CreateCommentRequest createCommentDto)
         {
             try
             {
@@ -93,18 +93,40 @@ namespace api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> UpdateComment([FromRoute] int id, [FromBody] CommentDto commentDto)
+        public async Task<IActionResult> UpdateComment([FromRoute] int id, [FromBody] UpdateCommentRequest updateCommentRequest)
         {
             try
             {
-                var comment = await _commentRepo.UpdateCommentAsync(id, commentDto);
+                var comment = await _commentRepo.UpdateCommentAsync(id, updateCommentRequest);
 
                 if (comment == null)
                 {
                     return NotFound($"Values with Id of: {id} was not found.");
                 }
 
-                return Ok(comment);
+                var commentDto = _mapper.Map<CommentDto>(comment);
+                return Ok(commentDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteComment(int id)
+        {
+            try
+            {
+                var comment = await _commentRepo.DeleteCommentAsync(id);
+
+                if (comment == null)
+                {
+                    return NotFound($"Comment does not exist");
+                }
+
+                var commentDto = _mapper.Map<CommentDto>(comment);
+                return Ok(commentDto);
             }
             catch (Exception ex)
             {

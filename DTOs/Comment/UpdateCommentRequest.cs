@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace api.DTOs.Comment
 {
-    public class CreateCommentDto
+    public class UpdateCommentRequest
     {
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;

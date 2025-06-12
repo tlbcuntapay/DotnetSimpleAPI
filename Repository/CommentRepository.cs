@@ -33,6 +33,7 @@ namespace api.Repository
 
             return comment;
         }
+
         public async Task<Comment> CreateCommentAsync(Comment comment)
         {
             await _context.Comments.AddAsync(comment);
@@ -40,7 +41,7 @@ namespace api.Repository
             return comment;
         }
 
-        public async Task<Comment?> UpdateCommentAsync(int id, CommentDto commentDto)
+        public async Task<Comment?> UpdateCommentAsync(int id, UpdateCommentRequest updateCommentRequest)
         {
             var existingComment = await _context.Comments.FindAsync(id);
 
@@ -49,12 +50,24 @@ namespace api.Repository
                 return null;
             }
 
-            _context.Entry(existingComment).CurrentValues.SetValues(commentDto);
+            _context.Entry(existingComment).CurrentValues.SetValues(updateCommentRequest);
             await _context.SaveChangesAsync();
             return existingComment;
-
-
-
         }
-    }
+
+        public async Task<Comment?> DeleteCommentAsync(int id)
+        {
+            var existingComment = await _context.Comments.FindAsync(id);
+
+            if (existingComment == null)
+            {
+                return null;
+            }
+
+            _context.Comments.Remove(existingComment);
+            await _context.SaveChangesAsync();
+
+            return existingComment;
+        }
+  }
 }
