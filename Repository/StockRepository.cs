@@ -8,6 +8,7 @@ using api.Interfaces;
 using api.Mappers;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace api.Repository
 {
@@ -56,6 +57,11 @@ namespace api.Repository
             _context.Stocks.Remove(stock);
             await _context.SaveChangesAsync();
             return stock;
+        }
+
+        public async Task<bool> StockExists(int id)
+        {
+            return await _context.Stocks.AnyAsync(stock => stock.Id == id);
         }
     }
 }

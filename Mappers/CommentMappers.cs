@@ -13,6 +13,7 @@ namespace api.Mappers
         public CommentProfile()
         {
             CreateMap<Comment, CommentDto>();
+            CreateMap<CreateCommentDto, Comment>();
         }
     } 
 }

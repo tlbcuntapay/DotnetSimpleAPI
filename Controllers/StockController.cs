@@ -30,7 +30,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllStockAsnyc()
+        public async Task<IActionResult> GetAllStock()
         {
             try
             {
@@ -45,7 +45,7 @@ namespace api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetStockByIdAsync([FromRoute] int id)
+        public async Task<IActionResult> GetStockById([FromRoute] int id)
         {
             try
             {
@@ -66,14 +66,13 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateStockAsync([FromBody] CreateStockRequest stockDto)
+        public async Task<IActionResult> CreateStock([FromBody] CreateStockRequest stockDto)
         {
             try
             {
                 var newStock = _mapper.Map<Stock>(stockDto);
                 await _stockRepo.CreateStockAsync(newStock);
-                // return Ok(stockDto.ToStockFromCreateDTO().ToStockDto());
-                return CreatedAtAction(nameof(GetStockByIdAsync), new { id = newStock.Id }, _mapper.Map<StockDto>(newStock));
+                return CreatedAtAction(nameof(GetStockById), new { id = newStock }, _mapper.Map<StockDto>(newStock));
             }
             catch (Exception ex)
             {
@@ -83,7 +82,7 @@ namespace api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> UpdateStockAsnyc([FromRoute] int id, [FromBody] UpdateStockRequest updateStockRequest)
+        public async Task<IActionResult> UpdateStock([FromRoute] int id, [FromBody] UpdateStockRequest updateStockRequest)
         {
             try
             {
@@ -106,7 +105,7 @@ namespace api.Controllers
 
         [HttpDelete]
         [Route("{id}")]
-        public async Task<IActionResult> DeleteStockAsnyc(int id)
+        public async Task<IActionResult> DeleteStock(int id)
         {
             try
             {
