@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace api.DTOs.Account
 {
-    public class RegisterRequest
+    public class RegisterDto
     {
         [Required]
-        public string? Username { get; set; }
+        public string? UserName { get; set; }
         [Required]
         [EmailAddress]
         public string? Email { get; set; }

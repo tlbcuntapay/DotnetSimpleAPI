@@ -10,6 +10,7 @@ using api.Mappers;
 using api.Models;
 using api.Repository;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
@@ -31,13 +32,14 @@ namespace api.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllStock([FromQuery] QueryObject query)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                    
+
                 var stocks = await _stockRepo.GetAllStocksAsync(query);
                 var stockDto = _mapper.Map<List<StockDto>>(stocks);
                 return Ok(stockDto);

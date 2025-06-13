@@ -7,7 +7,9 @@ using api.DTOs.Account;
 using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -17,14 +19,16 @@ namespace api.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITokenService _tokenService;
-        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService)
+        private readonly SignInManager<AppUser> _signinManager;
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, SignInManager<AppUser> signinManager)
         {
             _userManager = userManager;
             _tokenService = tokenService;
+            _signinManager = signinManager;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+        [HttpPost]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             try
             {
@@ -33,17 +37,17 @@ namespace api.Controllers
 
                 var appUser = new AppUser
                 {
-                    UserName = registerRequest.Username,
-                    Email = registerRequest.Email,
+                    UserName = registerDto.UserName,
+                    Email = registerDto.Email,
 
                 };
 
-                if (string.IsNullOrEmpty(registerRequest.Password))
+                if (string.IsNullOrEmpty(registerDto.Password))
                 {
                     return BadRequest("Password is required.");
                 }
 
-                var createdUser = await _userManager.CreateAsync(appUser, registerRequest.Password);
+                var createdUser = await _userManager.CreateAsync(appUser, registerDto.Password);
 
                 if (createdUser.Succeeded)
                 {
@@ -51,7 +55,7 @@ namespace api.Controllers
                     if (roleResult.Succeeded)
                     {
                         return Ok(
-                            new NewUserResponse
+                            new NewUserDto
                             {
                                 UserName = appUser.UserName!,
                                 Email = appUser.Email!,
@@ -73,6 +77,30 @@ namespace api.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.UserName.ToLower());
+
+            if (user == null)
+                return Unauthorized("Invalid Username");
+
+            var result = await _signinManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+            if (!result.Succeeded) return Unauthorized("Username not found or Password is incorrect");
+
+            return Ok(
+                new NewUserDto
+                {
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    Token =  _tokenService.CreateToken(user)
+                }
+            );
         }
     }
 }
