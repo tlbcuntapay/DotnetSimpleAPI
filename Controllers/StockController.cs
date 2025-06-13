@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.DTOs.Stock;
+using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
@@ -30,11 +31,14 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllStock()
+        public async Task<IActionResult> GetAllStock([FromQuery] QueryObject query)
         {
             try
             {
-                var stocks = await _stockRepo.GetAllStocksAsync();
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                    
+                var stocks = await _stockRepo.GetAllStocksAsync(query);
                 var stockDto = _mapper.Map<List<StockDto>>(stocks);
                 return Ok(stockDto);
             }
@@ -44,11 +48,14 @@ namespace api.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetStockById([FromRoute] int id)
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
                 var stock = await _stockRepo.GetStockByIdAsync(id);
 
                 if (stock == null)
@@ -70,6 +77,9 @@ namespace api.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
                 var newStock = _mapper.Map<Stock>(stockDto);
                 await _stockRepo.CreateStockAsync(newStock);
                 return CreatedAtAction(nameof(GetStockById), new { id = newStock }, _mapper.Map<StockDto>(newStock));
@@ -81,11 +91,14 @@ namespace api.Controllers
         }
 
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> UpdateStock([FromRoute] int id, [FromBody] UpdateStockRequest updateStockRequest)
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
                 var stock = await _stockRepo.UpdateStockAsync(id, updateStockRequest);
 
                 if (stock == null)
@@ -104,11 +117,14 @@ namespace api.Controllers
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> DeleteStock(int id)
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
                 var stock = await _stockRepo.DeleteStockAsnyc(id);
 
                 if (stock == null)
