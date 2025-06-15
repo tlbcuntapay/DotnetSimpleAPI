@@ -15,5 +15,8 @@ namespace api.Helpers
         public int PageNo { get; set; } = 1;
         public int PageSize { get; set; } = 10;
 
+        public int CommentPageNo { get; set; } = 1;
+        public int CommentPageSize { get; set; } = 10;
+
     }
 }

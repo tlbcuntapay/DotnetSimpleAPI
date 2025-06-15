@@ -44,7 +44,18 @@ namespace api.Repository
             }
 
             var skipNumber = (query.PageNo - 1) * query.PageSize;
-            return await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
+            var stocksPagination = await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
+
+            foreach (var stock in stocksPagination)
+            {
+                stock.Comments = stock.Comments
+                    .OrderByDescending(c => c.CreatedOn)
+                    .Skip((query.CommentPageNo - 1) * query.CommentPageSize)
+                    .Take(query.CommentPageSize)
+                    .ToList();
+            }
+            
+            return stocksPagination;
         }
         
         public async Task<Stock?> GetStockByIdAsync(int id)
