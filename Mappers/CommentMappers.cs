@@ -12,7 +12,8 @@ namespace api.Mappers
     {
         public CommentProfile()
         {
-            CreateMap<Comment, CommentDto>();
+            CreateMap<Comment, CommentDto>()
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.AppUserId));
             CreateMap<CreateCommentRequest, Comment>();
         }
     } 

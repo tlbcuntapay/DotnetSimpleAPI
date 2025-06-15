@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.DTOs.Comment;
+using api.Extensions;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Identity.Client;
@@ -19,15 +22,18 @@ namespace api.Controllers
     {
         private readonly ICommentRepository _commentRepo;
         private readonly IStockRepository _stockRepo;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
-        public CommentController(ICommentRepository commentRepo, IStockRepository stockRepo, IMapper mapper)
+        public CommentController(ICommentRepository commentRepo, IStockRepository stockRepo, UserManager<AppUser> userManager, IMapper mapper)
         {
             _mapper = mapper;
             _stockRepo = stockRepo;
             _commentRepo = commentRepo;
+            _userManager = userManager;
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllComments()
         {
             try
@@ -52,6 +58,7 @@ namespace api.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetCommentById([FromRoute] int id)
         {
             try
@@ -75,6 +82,7 @@ namespace api.Controllers
         }
 
         [HttpPost("{stockId:int}")]
+        [Authorize]
         public async Task<IActionResult> CreateComment([FromRoute] int stockId, [FromBody] CreateCommentRequest createCommentDto)
         {
             try
@@ -88,11 +96,15 @@ namespace api.Controllers
                     return BadRequest($"Stock does not found");
                 }
 
+                var username = User.GetUsername();
+                var appUser = await _userManager.FindByNameAsync(username);
+
                 var comment = _mapper.Map<Comment>(createCommentDto);
                 comment.StockId = stockId;
+                comment.AppUserId = appUser.Id;
 
                 await _commentRepo.CreateCommentAsync(comment);
-                return CreatedAtAction(nameof(GetCommentById), new { id = comment }, _mapper.Map<CommentDto>(comment));
+                return CreatedAtAction(nameof(GetCommentById), new { id = comment.Id }, _mapper.Map<CommentDto>(comment));
             }
             catch (Exception ex)
             {
